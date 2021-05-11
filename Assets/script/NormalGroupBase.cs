@@ -1,7 +1,12 @@
-﻿public class NormalGroupBase
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class NormalGroupBase
 {
     List<Pose> normals;
     Pose _groupNormal;
+    
 
     public List<Vector3> GetMeshNormals(Mesh stone, Vector3 firstNormal)
     {
@@ -30,7 +35,7 @@
             if (Vector3.Angle(groupNormal, stone.normals[i]) < tolerance)
             {
                 normalGroup.Add(stone.normals[i]);
-                groupNormal = normalGroup.Average();
+                //groupNormal = normalGroup.GetAverage();
             }
             else
             {

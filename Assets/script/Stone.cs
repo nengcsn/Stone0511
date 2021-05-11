@@ -11,10 +11,12 @@ public class Stone
     //List<Voxel> _voxels;
     float _longestLength;
     List<NormalGroup> _stoneNormals;
+    List<MeshTriangle> _triangleMesh;
     float _weight;
     float _voxelSize = 0.1f;
     private GameObject[,,] _voxels;
     public Vector3 Normal;
+    public float NormalTollerance;
 
 
     List<Stone> neighbours;
@@ -114,4 +116,79 @@ public class Stone
         return Vector3.zero;
     }
 
+
+
+
+    public List<Vector3> GetMeshNormals(Mesh stone)
+    {
+        //take a random face in the mesh
+        // Get its normal
+        // make a new normal group with the face normal
+        //loop untill entire mesh is checked
+        //Get next face using Breadth First Search
+        //if angle between new face normal and group normal < tolerance
+        //add the face to the normal group
+        //get the average normal of all faces in this normal group
+        //if angle between new face normal and group normal > tolerance
+        //Make a new normal group
+        //Set next face as checked
+
+
+        _triangleMesh = new List<MeshTriangle>();
+
+        //Fetching triangles from a 3D Mesh
+        for (int i = 0; i < stone.triangles.Length - 2; i += 3)
+        {
+            int index = i;
+            Vector3 v1 = stone.vertices[stone.triangles[i]];
+            Vector3 v2 = stone.vertices[stone.triangles[i + 1]];
+            Vector3 v3 = stone.vertices[stone.triangles[i + 2]];
+            //calculate mesh normal
+            Vector3 newNormal = Vector3.Cross((v2 - v1), (v3 - v1));
+
+            MeshTriangle newTriMesh = new MeshTriangle(new int[3] { index, index + 1, index + 2 }, newNormal, new Vector3[3] { v1, v2, v3 });
+            _triangleMesh.Add(newTriMesh);
+
+            /*
+            List<TriMesh> newMeshGroup = new List<TriMesh>();
+            
+            newMeshGroup.Add(newTriMesh);
+            MeshGroups.Add(newMeshGroup);
+            newTriMesh.Group = newMeshGroup;
+            UnCheckedMeshes.Add(newTriMesh);*/
+        }
+
+        return new List<Vector3>();
+    }
+
+    public void GetNormalGroups()
+    {
+        List<MeshTriangle> uncheckedTriangles = new List<MeshTriangle>(_triangleMesh);
+        _stoneNormals = new List<NormalGroup>();
+
+        for (int i = 0; i < uncheckedTriangles.Count; i++)
+        {
+            if (i == 0)
+            {
+                _stoneNormals.Add(new NormalGroup(uncheckedTriangles[i]));
+            }
+            else
+            {
+                bool addedToGroup = false;
+                //Check the current triangle with all the normalgroups
+                for (int j = 0; j < _stoneNormals.Count; j++)
+                {
+                    if (Vector3.Angle(uncheckedTriangles[i].TriangleNormal, _stoneNormals[j].GroupNormal) < NormalTollerance)
+                    {
+                        _stoneNormals[j].AddNormal(uncheckedTriangles[i]);
+                        addedToGroup = true;
+                    }
+                }
+                if (!addedToGroup)
+                {
+                    //add a new normalgroup to _stoneNormals
+                }
+            }
+        }
+    }
 }
