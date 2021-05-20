@@ -18,8 +18,8 @@ public class Stone
     public Vector3 Normal;
     public float NormalTollerance;
 
-    private GameObject _normalStart;
-    private GameObject _normalEnd;
+    public GameObject NormalStart { get; private set; }
+    public GameObject NormalEnd { get; private set; }
 
     List<Stone> neighbours;
     List<SpringJoint> joints;
@@ -72,7 +72,7 @@ public class Stone
 
 
         GetStoneNormal();
-        OrientNormal(Vector3.right);
+        //OrientNormal(Vector3.right);
         //OrientNormal(new Vector3(1, 0, 1));
     }
 
@@ -102,15 +102,15 @@ public class Stone
                 {
                     _longestLength = line.magnitude;
                     _stoneNormal = line;
-                    _normalStart = voxelList[i];
-                    _normalEnd = voxelList[j];
+                    NormalStart = voxelList[i];
+                    NormalEnd = voxelList[j];
                 }
             }
         }
 
     }
 
-    private void OrientNormal(Vector3 normalTarget)
+    public void OrientNormal(Vector3 normalTarget)
     {
         Quaternion rotation = Util.RotateFromTo(_stoneNormal, normalTarget);
         _goStone.transform.localRotation = rotation;
@@ -118,6 +118,11 @@ public class Stone
         GetStoneNormal();
     }
 
+    public void MoveStartToPosition(Vector3 target)
+    {
+        //Move start point to target
+        _goStone.transform.position = target;
+    }
 
     public class FromToVector : MonoBehaviour
     {
