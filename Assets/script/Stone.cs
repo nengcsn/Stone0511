@@ -18,6 +18,8 @@ public class Stone
     public Vector3 Normal;
     public float NormalTollerance;
 
+    private GameObject _normalStart;
+    private GameObject _normalEnd;
 
     List<Stone> neighbours;
     List<SpringJoint> joints;
@@ -37,8 +39,6 @@ public class Stone
         //Make a variable that store stoneMesh.bounds
         Mesh stoneMesh = _goStone.GetComponent<MeshFilter>().mesh;
         Vector3 centerPoint = stoneMesh.bounds.center;
-        Vector3 extents = stoneMesh.bounds.extents;
-        Debug.Log(extents);
 
         int gridX = Mathf.CeilToInt(stoneMesh.bounds.size.x / _voxelSize);
         int gridY = Mathf.CeilToInt(stoneMesh.bounds.size.y / _voxelSize);
@@ -70,9 +70,13 @@ public class Stone
         _goStone.GetComponent<MeshRenderer>().enabled = false;
 
 
+
         GetStoneNormal();
+        OrientNormal(Vector3.right);
+        //OrientNormal(new Vector3(1, 0, 1));
     }
 
+ 
     public void GetStoneNormal()
     {
         List<GameObject> voxelList = new List<GameObject>();
@@ -86,27 +90,72 @@ public class Stone
 
 
 
-        Vector3 longestLine = Vector3.zero;
+        //Vector3 longestLine = Vector3.zero;
+        _stoneNormal = Vector3.zero;
+
         for (int i = 0; i < voxelList.Count; i++)
         {
             for (int j = 0; j < voxelList.Count; j++)
             {
                 Vector3 line = voxelList[i].transform.position - voxelList[j].transform.position;
-                if (line.magnitude > longestLine.magnitude)
+                if (line.magnitude > _stoneNormal.magnitude)
                 {
-                    longestLine = line;
+                    _longestLength = line.magnitude;
+                    _stoneNormal = line;
+                    _normalStart = voxelList[i];
+                    _normalEnd = voxelList[j];
                 }
             }
         }
 
-        Debug.Log($"{longestLine} is the stones longest line");
-        RotateStoneToX(longestLine);
     }
 
-    public void RotateStoneToX(Vector3 normal)
+    private void OrientNormal(Vector3 normalTarget)
     {
-        _goStone.transform.rotation = Quaternion.FromToRotation(normal.normalized, Vector3.right);
+        Quaternion rotation = Util.RotateFromTo(_stoneNormal, normalTarget);
+        _goStone.transform.localRotation = rotation;
+        //_stoneNormal = normalTarget * _longestLength;
+        GetStoneNormal();
     }
+
+
+    public class FromToVector : MonoBehaviour
+    {
+        [SerializeField]
+        GameObject _start;
+        [SerializeField]
+        GameObject _end;
+        [SerializeField]
+        GameObject _newStart;
+        [SerializeField]
+        GameObject _newEnd;
+        [SerializeField]
+        GameObject _toRotate;
+
+        // Start is called before the first frame update
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            Vector3 origin = _start.transform.position - _end.transform.position;
+            Vector3 target = _newStart.transform.position - _newEnd.transform.position;
+            Debug.DrawLine(Vector3.zero, origin);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+
+                Quaternion rotation = Util.RotateFromTo(origin, target);
+                _toRotate.transform.rotation = rotation;
+            }
+        }
+
+        
+
+    }
+
 
     public Vector3 GetCenterOfGravity(List<Voxel> stoneVoxel)
     {
